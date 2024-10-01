@@ -1,0 +1,187 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Index {
+  id                Int      @id @default(autoincrement())
+  documentId        String
+  activationId      String
+  title             String
+  ocr               Boolean
+  downloadDate      DateTime
+  movedFromEndpoint Boolean
+  endpointLocation  String
+  classification    String
+
+  @@map("index_table")
+}
+
+model ContractInfoGeneral {
+  id                   Int      @id @default(autoincrement())
+  documentId           String
+  activationId         String
+  contractConsecutive  String
+  mitigationProgram    String
+  json                 Json
+  company              String
+  companyIdentifier    String
+  thirdPartyIdentifier String
+  thirdPartyName       String
+  contractType         String
+  serviceType          String
+  object               String
+  currency             String
+  value                Float
+  startDate            DateTime
+  endDate              DateTime
+  validity             Int
+
+  masterTable MasterTable? @relation("MasterTableToContractInfoGeneral")
+
+  @@map("contratos_info_general")
+}
+
+model ContractClauses {
+  id                  Int    @id @default(autoincrement())
+  documentId          String
+  activationId        String
+  contractConsecutive String
+  json                Json
+  // Add fields for each clause as needed
+
+  masterTable MasterTable? @relation("MasterTableToContractClauses")
+
+  @@map("contratos_clausulas")
+}
+
+model ContractGuarantees {
+  id                  Int    @id @default(autoincrement())
+  documentId          String
+  activationId        String
+  contractConsecutive String
+  json                Json
+
+  masterTable MasterTable? @relation("MasterTableToContractGuarantees")
+
+  @@map("contrato_amparos")
+}
+
+model OtrosiInfoGeneral {
+  id                   Int      @id @default(autoincrement())
+  documentId           String
+  activationId         String
+  otrosiNumber         String
+  contractConsecutive  String
+  thirdPartyIdentifier String
+  thirdPartyName       String
+  signatureDate        DateTime
+
+  masterTable MasterTable? @relation("MasterTableToOtrosiInfoGeneral")
+
+  @@map("otrosi_info_general")
+}
+
+model OtrosiModifications {
+  id                  Int    @id @default(autoincrement())
+  documentId          String
+  activationId        String
+  otrosiNumber        String
+  contractConsecutive String
+  json                Json
+
+  masterTable MasterTable? @relation("MasterTableToOtrosiModifications")
+
+  @@map("otrosi_modificaciones")
+}
+
+model PolicyInfoGeneral {
+  id                  Int      @id @default(autoincrement())
+  documentId          String
+  activationId        String
+  otrosiNumber        String
+  policyNumber        String
+  contractConsecutive String
+  json                Json
+  policyHolder        String
+  beneficiary         String
+  policyObject        String
+  totalPayment        Float
+  totalInsured        Float
+  paymentDate         DateTime
+
+  masterTable MasterTable? @relation("MasterTableToPolicyInfoGeneral")
+
+  @@map("poliza_info_general")
+}
+
+model PolicyGuarantees {
+  id                  Int    @id @default(autoincrement())
+  documentId          String
+  activationId        String
+  otrosiNumber        String
+  policyNumber        String
+  contractConsecutive String
+  json                Json
+
+  masterTable MasterTable? @relation("MasterTableToPolicyGuarantees")
+
+  @@map("poliza_amparos")
+}
+
+model MasterTable {
+  id                     Int                 @id @default(autoincrement())
+  contractConsecutive    String
+  contratosInfoGeneralId Int                 @unique
+  contratosInfoGeneral   ContractInfoGeneral @relation("MasterTableToContractInfoGeneral", fields: [contratosInfoGeneralId], references: [id])
+
+  contratosClausulasId Int             @unique
+  contratosClausulas   ContractClauses @relation("MasterTableToContractClauses", fields: [contratosClausulasId], references: [id])
+
+  contratoAmparosId Int                @unique
+  contratoAmparos   ContractGuarantees @relation("MasterTableToContractGuarantees", fields: [contratoAmparosId], references: [id])
+
+  otrosiInfoGeneralId Int               @unique
+  otrosiInfoGeneral   OtrosiInfoGeneral @relation("MasterTableToOtrosiInfoGeneral", fields: [otrosiInfoGeneralId], references: [id])
+
+  otrosiModificacionesId Int                 @unique
+  otrosiModificaciones   OtrosiModifications @relation("MasterTableToOtrosiModifications", fields: [otrosiModificacionesId], references: [id])
+
+  polizaInfoGeneralId Int               @unique
+  polizaInfoGeneral   PolicyInfoGeneral @relation("MasterTableToPolicyInfoGeneral", fields: [polizaInfoGeneralId], references: [id])
+
+  polizaAmparosId Int              @unique
+  polizaAmparos   PolicyGuarantees @relation("MasterTableToPolicyGuarantees", fields: [polizaAmparosId], references: [id])
+
+  done         Boolean  @default(false)
+  activationId String
+  date         DateTime
+
+  @@map("tabla_madre")
+}
+
+model GeneratedDocuments {
+  id                  Int    @id @default(autoincrement())
+  documentId          String
+  activationId        String
+  contractConsecutive String
+  documentUrl         String
+  queryUsed           String
+  templateUsed        String
+
+  @@map("documentos_generados")
+}
+
+model SentDocuments {
+  id                      Int      @id @default(autoincrement())
+  sentDocumentId          String
+  incorporatedDocumentIds String[]
+  activationId            String
+  documentUrl             String
+
+  @@map("documentos_enviados")
+}
